@@ -8,8 +8,14 @@ import {
   InMemoryCache,
   ApolloProvider,
   createHttpLink,
+  ApolloLink
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { onError } from 'apollo-link-error'
+
+const errorLink = onError(({ graphQLErrors }) => {
+  if (graphQLErrors) graphQLErrors.map(({ message }) => console.log(message))
+})
 
 const httpLink = createHttpLink({
   uri: '/graphql',
@@ -26,7 +32,8 @@ const authLink = setContext((_, { headers }) => {
 });
 
 const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  // link: authLink.concat(httpLink),
+  link: ApolloLink.from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache(),
 });
 

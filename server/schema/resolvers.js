@@ -11,8 +11,10 @@ const resolvers = {
 
     Mutation: {
         createUser: async (_, args) => {
+            console.log("test")
             const user = await User.create(args);
             const token = signToken(user);
+            console.log(user)
             return { token, user };
         },
         login: async(_, { email, password }) => {
@@ -30,6 +32,22 @@ const resolvers = {
 
             const token = signToken(user);
             return { token, user }
+        },
+
+        saveBook: async(_, { bookId, authors, description, title, image, link }, context ) => {
+            if( context.user) {
+                return User.findOneAndUpdate({ _id: context.user._id},
+                    { $push: { savedBooks: { bookId, authors, description, title, image, link } } }
+                    )
+            }
+        },
+
+        removeBook: async(_, { userId, bookId }) => {
+            return User.findOneAndUpdate(
+                { _id: userId },
+                { $pull: { savedBooks: bookId } },
+                { new: true }
+            )
         }
     }
 }
